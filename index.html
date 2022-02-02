@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Vue Whish List</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <style>
+        .comeTrue{
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body>
+<div id="root">
+    <nav class="navbar navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="#">Vue Wish List</a>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <!--        Form -->
+        <div class="d-flex justify-content-between gap-4">
+            <div class="d-flex align-content-center w-100">
+                <input type="text" name="wish" id="wish" class="form-control" v-model="wish">
+            </div>
+            <div class="d-flex align-content-center">
+                <button type="button" class="btn btn-primary" v-bind:disabled="isAllreadyInList" v-on:click="addWish">Add</button>
+            </div>
+        </div>
+        <div class="alert mt-2" v-bind:class="[isAllreadyInList ? 'alert-danger' : 'alert-info']" v-show="wish">
+            <p v-if="isAllreadyInList"><strong>{{wish}}</strong> is allready in your list !! </p>
+            <p v-else>You are going to add <strong>{{wish}}</strong> to your wish list !</p>
+        </div>
+        <!--        #Form -->
+        <!--        List -->
+        <div v-for="wish in sortedWishees" :key="wish.id">
+            <wish-item v-bind:wish="wish" v-on:remove-wish="removeWish"></wish-item>
+        </div>
+        <!--        #List -->
+    </div>
+</div>
+<script src="https://unpkg.com/vue@next"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+<script type="text/x-template" id="wish-item">
+    <div class="d-flex justify-content-between gap-4 mt-4">
+        <div class="d-flex align-content-center">
+            <input type="checkbox" v-model="wish.isComeTrue">
+        </div>
+        <div class="d-flex align-content-center w-100">
+            <span v-bind:class="{comeTrue: wish.isComeTrue}">{{ wish.wish }}</span>
+        </div>
+        <div class="d-flex align-content-center">
+            <button class="btn btn-danger" v-on:click="$emit('remove-wish', wish.id)">Delete</button>
+        </div>
+    </div>
+</script>
+<script>
+    const app = Vue.createApp({
+        data() {
+            return {
+                wish: '',
+                wishees: [{
+                    id: 1,
+                    wish: 'MacBook Pro',
+                    isComeTrue: true
+                }, {
+                    id: 2,
+                    wish: 'Honda Vario 150 2022',
+                    isComeTrue: false
+                }, {
+                    id: 3,
+                    wish: 'iPhone 13',
+                    isComeTrue: false
+                }]
+            }
+        },
+        methods: {
+            addWish(){
+                let nextId = Math.max.apply(Math, this.wishees.map(function(o) { return o.id; }))
+                this.wishees.push({
+                    id: nextId,
+                    wish: this.wish,
+                    isComeTrue: false
+                });
+                this.wish = '';
+            },
+            removeWish(wishId){
+                let index = -1;
+                this.wishees.map((w, i) => {
+                    if (w.id === wishId){
+                        index = i;
+                    }
+                })
+                if (index > -1) {
+                    this.wishees.splice(index, 1);
+                }
+            }
+        },
+        computed: {
+            isAllreadyInList(){
+                let isAllreadyInList = false;
+                this.wishees.map(w => {
+                    if (w.wish.toLowerCase() === this.wish.toLowerCase()){
+                        isAllreadyInList = true;
+                    }
+                });
+                return isAllreadyInList;
+            },
+            sortedWishees(){
+                let wish = [];
+                let wishComeTrue = [];
+                this.wishees.map(w => {
+                    if (w.isComeTrue){
+                        wishComeTrue.push(w);
+                    } else {
+                        wish.push(w);
+                    }
+                });
+                return wish.concat(wishComeTrue);
+            }
+        }
+    });
+
+    app.component('wish-item', {
+        props: ['wish'],
+        template: '#wish-item'
+    });
+
+    app.mount('#root');
+</script>
+</body>
+</html>
